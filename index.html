@@ -474,7 +474,7 @@ details.box[open] summary{margin-bottom:14px}
 @media (max-width:767px){ .greet-hi{font-size:26px} }
 
 /* Sliding tab ink */
-.tabs,.tabbar{position:relative}
+.tabs{position:relative}
 .tab{position:relative;z-index:1}
 .tab-ink{position:absolute;top:0;left:0;width:0;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);z-index:0;pointer-events:none;
   transition:transform .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1)}
@@ -561,6 +561,24 @@ details.box[open] summary{margin-bottom:14px}
 
 /* Confetti */
 .confetti{position:fixed;width:8px;height:12px;border-radius:2px;pointer-events:none;z-index:95;will-change:transform,opacity}
+
+/* iPhone: floating capsule tab bar — lifted off the bottom edge, big tap targets */
+@media (max-width:767px){
+  .tabbar{
+    position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 10px);
+    padding:6px;border:1px solid var(--line);border-radius:26px;
+    box-shadow:0 14px 40px -12px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.08);
+    -webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
+  }
+  .tabbar .tab{min-height:56px;padding:6px 0;gap:3px;font-size:11.5px;font-weight:500;border-radius:20px;color:var(--muted)}
+  .tabbar .tab:active{transform:scale(.94)}
+  .tabbar .tab .i{width:23px;height:23px}
+  .tabbar .tab[aria-selected="true"]{color:var(--gold)}
+  .tabbar .tab-ink{top:6px;height:calc(100% - 12px);border-radius:20px;background:var(--gold-soft);box-shadow:none;border:0}
+  body{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .toasts{bottom:calc(98px + env(safe-area-inset-bottom))}
+  .save-dock{bottom:calc(92px + env(safe-area-inset-bottom))}
+}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -1308,8 +1326,12 @@ function readLog_(n) {
   'use strict';
 
   /* ================= App version & changelog ================= */
-  const APP_VERSION = '2.2.1';
+  const APP_VERSION = '2.2.2';
   const CHANGELOG = [
+    { version: '2.2.2', date: '2026-11-24', notes: [
+      'iPhone: แถบเมนูด้านล่างลอยขึ้นจากขอบจอเป็นแคปซูล ปุ่มใหญ่ขึ้น กดง่ายด้วยนิ้วโป้ง',
+      'iPhone: ปัดซ้าย/ขวาบนหน้าจอเพื่อสลับแท็บได้เลย'
+    ]},
     { version: '2.2.1', date: '2026-11-24', notes: [
       'ลดป๊อปอัพที่ไม่จำเป็น: ไม่แจ้งเตือนทุกครั้งที่บันทึกหรือซิงค์สำเร็จ (ดูรายการที่เปลี่ยนได้ในการ์ด “การอัปเดตล่าสุด” และจุดสถานะการซิงค์)',
       'ป๊อปอัพจะเด้งเฉพาะเรื่องที่ต้องรู้หรือต้องทำ: ซิงค์ไม่สำเร็จ, ข้อมูลถูกแก้จากอุปกรณ์อื่น, กรอกข้อมูลไม่ถูกต้อง',
@@ -1953,8 +1975,7 @@ function readLog_(n) {
     $$('.tabs, .tabbar').forEach((nav) => {
       const ink = nav.querySelector('.tab-ink'), t = nav.querySelector('.tab[aria-selected="true"]');
       if (!ink || !t || !t.offsetWidth) return;
-      if (nav.classList.contains('tabbar')) { const w = 30; ink.style.width = w + 'px'; ink.style.transform = `translateX(${t.offsetLeft + t.offsetWidth / 2 - w / 2}px)`; }
-      else { ink.style.width = t.offsetWidth + 'px'; ink.style.transform = `translateX(${t.offsetLeft}px)`; }
+      ink.style.width = t.offsetWidth + 'px'; ink.style.transform = `translateX(${t.offsetLeft}px)`;
     });
   }
   window.addEventListener('resize', () => requestAnimationFrame(moveInk));
@@ -2686,6 +2707,28 @@ function readLog_(n) {
     heroEl.style.setProperty('--mx', (e.clientX - r.left) + 'px');
     heroEl.style.setProperty('--my', (e.clientY - r.top) + 'px');
   });
+
+  /* ================= Swipe left/right to switch tabs (iPhone) ================= */
+  (function swipeTabs() {
+    if (!('ontouchstart' in window)) return;
+    let x0 = null, y0 = 0, t0 = 0;
+    $('main').addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      // ข้ามบริเวณที่เลื่อนแนวนอนเองได้ และขอบซ้ายที่ใช้ปัดย้อนกลับของ Safari
+      if (e.touches.length > 1 || t.clientX < 24 || e.target.closest('.table-wrap,.chart-box,.tl-track,input,select,textarea,.seg,.overlay')) { x0 = null; return; }
+      x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+    }, { passive: true });
+    $('main').addEventListener('touchend', (e) => {
+      if (x0 == null) return;
+      const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) < 70 || Math.abs(dy) > 50 || Date.now() - t0 > 650) return;
+      const cur = TABS.indexOf(($('.panel.active') || {}).id ? $('.panel.active').id.slice(4) : 'overview');
+      const next = cur + (dx < 0 ? 1 : -1);
+      if (next < 0 || next >= TABS.length) return;
+      haptic(); setTab(TABS[next]); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, { passive: true });
+  })();
 
   /* ================= Pull to refresh (iPhone) ================= */
   (function pullToRefresh() {
