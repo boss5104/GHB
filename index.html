@@ -334,6 +334,9 @@ td.strong{font-weight:600}
 .row-actions{display:flex;gap:6px;justify-content:flex-end}
 .row-actions .icon-btn{width:34px;height:34px;border-radius:10px;background:var(--surface-3)}
 .row-actions .icon-btn.del:hover{color:var(--bad);background:var(--bad-soft)}
+.two span{display:block;line-height:1.45}
+.two span:first-child{color:var(--house)} .two span:last-child{color:var(--dorm)}
+.two.mute span{color:var(--text-2)!important}
 .c-house{color:var(--house)} .c-dorm{color:var(--dorm)} .c-good{color:var(--good)} .c-gold{color:var(--gold)} .c-warn{color:var(--warn)}
 
 /* Report header */
@@ -531,7 +534,7 @@ details.box[open] summary{margin-bottom:14px}
           <div class="hero-stats">
             <div class="hero-stat"><div class="eyebrow">ดอกเบี้ยคงเหลือรวม</div><div class="v num" id="heroInterest">-</div><div class="s">หลังหักจ่ายรอบนี้</div></div>
             <div class="hero-stat"><div class="eyebrow">ยอดผ่อนรอบนี้</div><div class="v num" id="heroPay">-</div><div class="s" id="heroPaySplit">-</div></div>
-            <div class="hero-stat"><div class="eyebrow">คาดว่าจะหมดหนี้ (แผนปกติ)</div><div class="v gold" id="heroPayoff">-</div><div class="s" id="heroPayoffIn">-</div></div>
+            <div class="hero-stat"><div class="eyebrow" id="heroPayoffLabel">คาดว่าจะหมดหนี้ (แผนปกติ)</div><div class="v gold" id="heroPayoff">-</div><div class="s" id="heroPayoffIn">-</div></div>
           </div>
         </div>
 
@@ -678,10 +681,10 @@ details.box[open] summary{margin-bottom:14px}
           </div>
         </div>
         <div class="report-sec">
-          <h4><b>2</b>ประวัติการผ่อนชำระแต่ละเดือน (แยกต้นและดอกเบี้ย)</h4>
+          <h4><b>2</b>ประวัติการผ่อนชำระ เงินต้นและดอกเบี้ยค้างคงเหลือแยกบัญชี<span class="spacer" style="flex:1"></span><span class="legend" style="font-weight:500"><span><i style="background:var(--house)"></i>บ้าน 4901</span><span><i style="background:var(--dorm)"></i>หอ 6367</span></span></h4>
           <div class="table-wrap scroll-y">
             <table>
-              <thead><tr><th>รอบเดือน</th><th class="r">จ่ายต้น (บ้าน / หอ)</th><th class="r">จ่ายดอก (บ้าน / หอ)</th><th class="r">รวมจ่าย</th><th class="r">เงินต้นคงเหลือรวม</th><th class="r report-only-hide no-print">จัดการ</th></tr></thead>
+              <thead><tr><th>รอบเดือน</th><th class="r">จ่ายต้น</th><th class="r">จ่ายดอก</th><th class="r">เงินต้นคงเหลือ</th><th class="r">ดอกเบี้ยค้าง</th><th class="r">รวมจ่าย</th><th class="r">คงเหลือรวม (ต้น / ดอก)</th><th class="r report-only-hide no-print">จัดการ</th></tr></thead>
               <tbody id="reportHistory"></tbody>
             </table>
           </div>
@@ -802,11 +805,13 @@ details.box[open] summary{margin-bottom:14px}
       <div class="form-grid">
         <label class="field full"><span>รอบเดือน</span><input type="date" class="input" id="ed-date"></label>
         <div class="sub-label" style="border:0;padding-top:0"><svg class="i i-sm c-house"><use href="#i-home"/></svg>บัญชีบ้าน (4901)</div>
-        <label class="field full"><span>เงินต้นคงเหลือตั้งต้น</span><input type="number" inputmode="decimal" class="input num" id="ed-house-principal"></label>
+        <label class="field"><span>เงินต้นก่อนจ่ายงวดนี้</span><input type="number" inputmode="decimal" class="input num" id="ed-house-principal"></label>
+        <label class="field"><span>ดอกเบี้ยค้าง</span><input type="number" inputmode="decimal" class="input num" id="ed-house-interest"></label>
         <label class="field"><span>จ่ายตัดต้น</span><input type="number" inputmode="decimal" class="input num" id="ed-house-payPrincipal"></label>
         <label class="field"><span>จ่ายตัดดอก</span><input type="number" inputmode="decimal" class="input num" id="ed-house-payInterest"></label>
         <div class="sub-label"><svg class="i i-sm c-dorm"><use href="#i-building"/></svg>บัญชีหอ (6367)</div>
-        <label class="field full"><span>เงินต้นคงเหลือตั้งต้น</span><input type="number" inputmode="decimal" class="input num" id="ed-dorm-principal"></label>
+        <label class="field"><span>เงินต้นก่อนจ่ายงวดนี้</span><input type="number" inputmode="decimal" class="input num" id="ed-dorm-principal"></label>
+        <label class="field"><span>ดอกเบี้ยค้าง</span><input type="number" inputmode="decimal" class="input num" id="ed-dorm-interest"></label>
         <label class="field"><span>จ่ายตัดต้น</span><input type="number" inputmode="decimal" class="input num" id="ed-dorm-payPrincipal"></label>
         <label class="field"><span>จ่ายตัดดอก</span><input type="number" inputmode="decimal" class="input num" id="ed-dorm-payInterest"></label>
       </div>
@@ -1070,8 +1075,16 @@ function readLog_(n) {
   'use strict';
 
   /* ================= App version & changelog ================= */
-  const APP_VERSION = '2.0.0';
+  const APP_VERSION = '2.1.0';
   const CHANGELOG = [
+    { version: '2.1.0', date: '2026-11-24', notes: [
+      'นำเข้าข้อมูลเดิม: ประวัติ 6 งวด (23 พ.ค. – 30 ต.ค. 2569) ยอดตั้งต้นรอบ 24 พ.ย. 2569 และแผนประนอมหนี้ “คุณสู้เราช่วย”',
+      'ตารางประวัติแสดงเงินต้นและดอกเบี้ยค้างคงเหลือแยกบ้าน / หอ เหมือนรายงานเดิม',
+      'แก้ไขดอกเบี้ยค้างของแต่ละงวดได้ในหน้าต่างแก้ไข',
+      'เมื่อเปิดประนอมหนี้ หน้าภาพรวมคาดการณ์วันหมดหนี้ตามแผนประนอม',
+      'หลังจบโครงการประนอม ระบบคำนวณต่อด้วยค่างวดช่วงสุดท้าย (ดอกเบี้ยอัตราปกติ) หากยังไม่ได้กรอกยอดจ่ายตัดต้น',
+      'บอกเหตุผลชัดเจนเมื่อคำนวณวันหมดหนี้ไม่ได้ เช่น ยังไม่ได้กรอกยอดจ่าย หรือเกิน 50 ปี'
+    ]},
     { version: '2.0.0', date: '2026-11-24', notes: [
       'ดีไซน์ใหม่ หรูหรา ทันสมัย ใช้งานง่ายทั้ง iPhone และ MacBook พร้อมโหมดมืด/สว่างอัตโนมัติ',
       'เข้าใช้งานได้ทันที ไม่ต้องใส่อีเมลหรือรหัสผ่านอีกต่อไป',
@@ -1097,7 +1110,7 @@ function readLog_(n) {
     del(k) { try { localStorage.removeItem(k); } catch (e) {} },
     json(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   };
-  const K = { state: 'ghb.state.v2', baseline: 'ghb.baseline.v2', url: 'ghb.sheetUrl', rev: 'ghb.rev', pending: 'ghb.pending', lastSync: 'ghb.lastSync', log: 'ghb.log', device: 'ghb.device', theme: 'ghb.theme', seen: 'ghb.seenVersion', tab: 'ghb.tab' };
+  const K = { seed: 'ghb.seed', state: 'ghb.state.v2', baseline: 'ghb.baseline.v2', url: 'ghb.sheetUrl', rev: 'ghb.rev', pending: 'ghb.pending', lastSync: 'ghb.lastSync', log: 'ghb.log', device: 'ghb.device', theme: 'ghb.theme', seen: 'ghb.seenVersion', tab: 'ghb.tab' };
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const n = (v) => { const x = parseFloat(v); return isFinite(x) ? x : 0; };
   const fmt = (v, d = 2) => (Number(v) || 0).toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -1148,6 +1161,11 @@ function readLog_(n) {
     },
     meta: { updatedAt: 0 }
   });
+
+  // ข้อมูลเดิมจากแอปเวอร์ชันก่อน (นำเข้าเมื่อ 24 พ.ย. 2569) — สำเนาอยู่ที่ data/ghb-data-2569-11-24.json
+  const SEED_ID = 'import-2569-11-24';
+  const SEED = {"version": 2, "current": {"date": "2026-11-24", "house": {"principal": 2484215.09, "interest": 222628.41, "rate": 5.145, "payPrincipal": 0, "payInterest": 0}, "dorm": {"principal": 1944207.71, "interest": 181726.91, "rate": 6.15, "payPrincipal": 0, "payInterest": 0}}, "history": [{"date": "2026-05-23", "house": {"principal": 2530115.09, "interest": 168274.22, "rate": 5.145, "payPrincipal": 0.0, "payInterest": 0}, "dorm": {"principal": 1971207.71, "interest": 131083.7, "rate": 6.15, "payPrincipal": 0.0, "payInterest": 0}}, {"date": "2026-06-23", "house": {"principal": 2530115.09, "interest": 179361.28, "rate": 5.145, "payPrincipal": 8500.0, "payInterest": 0}, "dorm": {"principal": 1971207.71, "interest": 141394.21, "rate": 6.15, "payPrincipal": 6800.0, "payInterest": 0}}, {"date": "2026-07-23", "house": {"principal": 2521615.09, "interest": 190054.56, "rate": 5.145, "payPrincipal": 8500.0, "payInterest": 0}, "dorm": {"principal": 1964407.71, "interest": 151351.38, "rate": 6.15, "payPrincipal": 3400.0, "payInterest": 0}}, {"date": "2026-08-25", "house": {"principal": 2513115.09, "interest": 201063.74, "rate": 5.145, "payPrincipal": 8500.0, "payInterest": 0}, "dorm": {"principal": 1961007.71, "interest": 161606.89, "rate": 6.15, "payPrincipal": 5000.0, "payInterest": 0}}, {"date": "2026-09-23", "house": {"principal": 2504615.09, "interest": 212039.38, "rate": 5.145, "payPrincipal": 8500.0, "payInterest": 0}, "dorm": {"principal": 1956007.71, "interest": 171844.75, "rate": 6.15, "payPrincipal": 5000.0, "payInterest": 0}}, {"date": "2026-10-30", "house": {"principal": 2496115.09, "interest": 222628.41, "rate": 5.145, "payPrincipal": 11900.0, "payInterest": 0}, "dorm": {"principal": 1951007.71, "interest": 181726.91, "rate": 6.15, "payPrincipal": 6800.0, "payInterest": 0}}], "restructure": {"enabled": true, "house": {"name": "คุณสู้เราช่วย", "rate": 0, "periods": [{"startMonth": 10, "startYear": 2568, "years": 1, "months": 0, "payment": 8500}, {"startMonth": 10, "startYear": 2569, "years": 1, "months": 0, "payment": 11900}]}, "dorm": {"name": "คุณสู้เราช่วย", "rate": 0, "periods": [{"startMonth": 10, "startYear": 2568, "years": 1, "months": 0, "payment": 3400}, {"startMonth": 10, "startYear": 2569, "years": 1, "months": 0, "payment": 4800}, {"startMonth": 10, "startYear": 2570, "years": 1, "months": 0, "payment": 6200}]}}, "meta": {"updatedAt": 0}};
+  const isPristineDemo = (x) => !x.history.length && x.current.house.principal === 1500000 && x.current.dorm.principal === 800000;
 
   const ACC_FIELDS = ['principal', 'interest', 'rate', 'payPrincipal', 'payInterest'];
   function normAcc(a, d) { const o = {}; ACC_FIELDS.forEach((k) => { o[k] = a && a[k] != null ? n(a[k]) : d[k]; }); return o; }
@@ -1225,35 +1243,48 @@ function readLog_(n) {
   }
 
   /* ================= Calculations ================= */
+  // reason: 'nopay' = ยังไม่ระบุยอดจ่ายตัดต้น, 'insufficient' = ค่างวดไม่พอจ่ายดอกเบี้ย, 'long' = เกิน 50 ปี
   function simulate(bal, a, plan, startIdx) {
     const series = [bal];
-    let totalInt = 0, m = 0, endBal = null, never = false;
+    let totalInt = 0, m = 0, endBal = null, reason = null;
     const periods = plan ? plan.periods.map((p) => {
       const y = p.startYear > 2400 ? p.startYear - 543 : p.startYear;
       const s = y * 12 + (p.startMonth - 1);
       return { s, e: s + p.years * 12 + p.months, pay: n(p.payment) };
     }).filter((p) => p.e > p.s) : [];
     const lastEnd = periods.length ? Math.max(...periods.map((p) => p.e)) : null;
-    while (bal > 0.005 && m < 600) {
+    const lastPay = periods.length ? periods.reduce((x, p) => (p.e > x.e ? p : x)).pay : 0;
+    while (bal > 0.005) {
+      if (m >= 600) { reason = 'long'; break; }
       m++;
       const idx = startIdx + m;
       const per = periods.find((p) => idx >= p.s && idx < p.e);
       let int, pp;
       if (per) { int = bal * n(plan.rate) / 1200; pp = Math.max(0, per.pay - int); }
-      else { int = bal * n(a.rate) / 1200; pp = n(a.payPrincipal); if (pp <= 0 && (lastEnd == null || idx >= lastEnd)) { never = true; break; } }
+      else {
+        int = bal * n(a.rate) / 1200; pp = n(a.payPrincipal);
+        if (pp <= 0 && (lastEnd == null || idx >= lastEnd)) {
+          // หลังจบโครงการและยังไม่ได้กรอกยอดจ่าย: ผ่อนต่อด้วยค่างวดช่วงสุดท้าย (ดอกเบี้ยอัตราปกติ)
+          if (plan && lastPay > int) pp = lastPay - int;
+          else { reason = plan && lastPay > 0 ? 'insufficient' : 'nopay'; break; }
+        }
+      }
       totalInt += int;
       bal = Math.max(0, bal - pp);
       series.push(bal);
       if (lastEnd != null && idx === lastEnd - 1) endBal = bal;
     }
-    if (bal > 0.005 && !never) never = true; // เกิน 50 ปี
     let endStatus = null;
     if (lastEnd != null) {
       if (lastEnd - 1 <= startIdx) endStatus = 'past';
-      else endStatus = endBal == null ? 0 : endBal;
+      else endStatus = endBal == null ? (reason ? null : 0) : endBal;
     }
-    return { months: never ? null : m, totalInt: never ? null : totalInt, series, endBal: endStatus, lastEnd };
+    return { months: reason ? null : m, totalInt: reason ? null : totalInt, reason, series, endBal: endStatus, lastEnd };
   }
+
+  const REASON_TH = { nopay: 'ยังไม่ได้กรอกยอดจ่ายตัดต้น', insufficient: 'ค่างวดไม่พอจ่ายดอกเบี้ย', long: 'มากกว่า 50 ปี' };
+  const whyNot = (r) => REASON_TH[r] || 'คำนวณไม่ได้';
+  const simText = (x) => (x.months == null ? whyNot(x.reason) : duration(x.months));
 
   function compute(s) {
     const cur = s.current;
@@ -1278,11 +1309,13 @@ function readLog_(n) {
       startIdx, acc, totalRemP, totalRemI: h.remI + d.remI, totalPay: h.pay + d.pay,
       baselineP, paidPrincipal, pct: baselineP > 0 ? paidPrincipal / baselineP : 0, histPaid,
       normalMonths: maxMonths(h.normal.months, d.normal.months),
-      normalInt: sumOrNull(h.normal.totalInt, d.normal.totalInt)
+      normalInt: sumOrNull(h.normal.totalInt, d.normal.totalInt),
+      normalReason: h.normal.reason || d.normal.reason
     };
     if (s.restructure.enabled) {
       res.restrMonths = maxMonths(h.restr.months, d.restr.months);
       res.restrInt = sumOrNull(h.restr.totalInt, d.restr.totalInt);
+      res.restrReason = h.restr.reason || d.restr.reason;
     }
     // ชุดข้อมูลกราฟรวม
     const L = Math.max(h.normal.series.length, d.normal.series.length, s.restructure.enabled ? Math.max(h.restr.series.length, d.restr.series.length) : 0);
@@ -1340,6 +1373,7 @@ function readLog_(n) {
     const C = compute(state);
     lastCalc = C;
     const cur = state.current;
+    const on = state.restructure.enabled;
 
     // Hero
     $('#heroAmount').textContent = fmt(C.totalRemP);
@@ -1349,14 +1383,17 @@ function readLog_(n) {
     $('#heroInterest').textContent = baht(C.totalRemI);
     $('#heroPay').textContent = baht(C.totalPay);
     $('#heroPaySplit').textContent = `ต้น ${fmt(cur.house.payPrincipal + cur.dorm.payPrincipal, 0)} · ดอก ${fmt(cur.house.payInterest + cur.dorm.payInterest, 0)}`;
-    $('#heroPayoff').textContent = C.normalMonths == null ? 'คำนวณไม่ได้' : (C.normalMonths === 0 ? 'ปลอดหนี้แล้ว' : idxLong(C.startIdx + C.normalMonths));
-    $('#heroPayoffIn').textContent = C.normalMonths == null ? 'กรุณาระบุยอดจ่ายตัดต้น' : 'อีก ' + duration(C.normalMonths);
+    const pm = on ? C.restrMonths : C.normalMonths, pr = on ? C.restrReason : C.normalReason;
+    $('#heroPayoffLabel').textContent = on ? 'คาดว่าจะหมดหนี้ (ตามแผนประนอม)' : 'คาดว่าจะหมดหนี้ (แผนปกติ)';
+    $('#heroPayoff').textContent = pm == null ? whyNot(pr) : (pm === 0 ? 'ปลอดหนี้แล้ว' : idxLong(C.startIdx + pm));
+    $('#heroPayoffIn').textContent = pm == null ? (pr === 'nopay' ? 'กรอกได้ที่แท็บบันทึกงวด' : 'ลองเพิ่มค่างวด') : 'อีก ' + duration(pm);
 
     // Account cards
     $('#accountCards').innerHTML = ['house', 'dorm'].map((k) => {
       const a = C.acc[k];
       const share = C.totalRemP > 0 ? (a.remP / C.totalRemP) * 100 : 0;
-      const payoff = a.normal.months == null ? 'คำนวณไม่ได้' : (a.normal.months === 0 ? 'ปลอดหนี้แล้ว' : `${idxLong(C.startIdx + a.normal.months)} (${duration(a.normal.months)})`);
+      const sim = on ? a.restr : a.normal;
+      const payoff = sim.months == null ? whyNot(sim.reason) : (sim.months === 0 ? 'ปลอดหนี้แล้ว' : `${idxLong(C.startIdx + sim.months)} (${duration(sim.months)})`);
       return `<div class="card acc-card ${k}">
         <div class="acc-head"><div class="acc-ico ${k}"><svg class="i"><use href="#i-${k === 'house' ? 'home' : 'building'}"/></svg></div>
           <div style="flex:1"><div class="acc-name">${k === 'house' ? 'บัญชีบ้าน' : 'บัญชีหอ'}</div><div class="acc-sub">เลขที่ ${k === 'house' ? '4901' : '6367'}</div></div>
@@ -1365,28 +1402,32 @@ function readLog_(n) {
         <div class="acc-amount num">${baht(a.remP)}</div>
         <div class="kv"><span>ดอกเบี้ยคงเหลือ</span><span class="num c-warn">${baht(a.remI)}</span></div>
         <div class="kv"><span>จ่ายรอบนี้ (ต้น / ดอก)</span><span class="num c-good">${fmt(a.payPrincipal, 0)} / ${fmt(a.payInterest, 0)}</span></div>
-        <div class="kv"><span>คาดหมดหนี้</span><span>${payoff}</span></div>
+        <div class="kv"><span>คาดหมดหนี้${on ? ' (ประนอม)' : ''}</span><span>${payoff}</span></div>
         <div class="bar"><span style="width:${share.toFixed(1)}%;background:var(--${k})"></span></div>
         <div class="muted" style="font-size:12px;margin-top:6px">สัดส่วน ${share.toFixed(1)}% ของหนี้ทั้งหมด</div>
       </div>`;
     }).join('');
 
     // Compare
-    const on = state.restructure.enabled;
     $('#compareCard').classList.toggle('hidden', !on);
     $('#legendRestr').classList.toggle('hidden', !on);
     if (on) {
-      $('#cmpMonths').textContent = `${C.normalMonths ?? '-'} / ${C.restrMonths ?? '-'} เดือน`;
+      const mTxt = (m, r) => (m == null ? (r === 'long' ? '600+' : '–') : m);
+      $('#cmpMonths').textContent = `${mTxt(C.normalMonths, C.normalReason)} / ${mTxt(C.restrMonths, C.restrReason)} เดือน`;
       if (C.normalMonths != null && C.restrMonths != null) {
         const diff = C.normalMonths - C.restrMonths;
         $('#cmpMonthsSub').textContent = diff > 0 ? `เร็วขึ้น ${duration(diff)}` : diff < 0 ? `นานขึ้น ${duration(-diff)}` : 'ระยะเวลาเท่ากัน';
-      } else $('#cmpMonthsSub').textContent = 'ข้อมูลไม่พอสำหรับคำนวณ';
+      } else $('#cmpMonthsSub').textContent = C.normalMonths == null ? `แผนปกติ: ${whyNot(C.normalReason)}` : `ประนอม: ${whyNot(C.restrReason)}`;
       if (C.normalInt != null && C.restrInt != null) {
         const save = C.normalInt - C.restrInt;
         $('#cmpInterest').textContent = save >= 0 ? `ประหยัด ${baht(save, 0)}` : `เพิ่มขึ้น ${baht(-save, 0)}`;
         $('#cmpInterest').classList.toggle('good', save >= 0);
         $('#cmpInterestSub').textContent = `ปกติ ${baht(C.normalInt, 0)} → ประนอม ${baht(C.restrInt, 0)}`;
-      } else { $('#cmpInterest').textContent = '-'; $('#cmpInterestSub').textContent = 'ข้อมูลไม่พอสำหรับคำนวณ'; }
+      } else if (C.restrInt != null) {
+        $('#cmpInterest').textContent = baht(C.restrInt, 0);
+        $('#cmpInterest').classList.remove('good');
+        $('#cmpInterestSub').textContent = `ดอกเบี้ยรวมตามแผนประนอม · แผนปกติ: ${whyNot(C.normalReason)}`;
+      } else { $('#cmpInterest').textContent = '-'; $('#cmpInterestSub').textContent = whyNot(C.restrReason || C.normalReason); }
       const endTxt = (r) => (r.endBal === 'past' ? 'สิ้นสุดแล้ว' : r.endBal == null ? 'ไม่มีช่วงเวลา' : baht(r.endBal, 0));
       const hR = C.acc.house.restr, dR = C.acc.dorm.restr;
       const both = [hR, dR].filter((r) => typeof r.endBal === 'number');
@@ -1397,8 +1438,8 @@ function readLog_(n) {
     ['house', 'dorm'].forEach((k) => {
       const r = C.acc[k].restr;
       const el = k === 'house' ? $('#restrSumHouse') : $('#restrSumDorm');
-      if (!on || !r) { el.textContent = `ผ่อนปกติ: หมดหนี้ใน ${duration(C.acc[k].normal.months)}`; return; }
-      el.textContent = r.months == null ? 'ค่างวดไม่พอชำระหนี้' : `หมดหนี้ใน ${duration(r.months)} (ปกติ ${duration(C.acc[k].normal.months)})`;
+      if (!on || !r) { el.textContent = `ผ่อนปกติ: ${simText(C.acc[k].normal)}`; return; }
+      el.textContent = r.months == null ? whyNot(r.reason) : `หมดหนี้ใน ${duration(r.months)} (ปกติ: ${simText(C.acc[k].normal)})`;
     });
 
     // Record summary
@@ -1414,7 +1455,8 @@ function readLog_(n) {
     const h = C.acc.house, d = C.acc.dorm;
     $('#reportDate').textContent = 'ข้อมูล ณ ' + new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
     const row = (label, a, b, t, cls = '') => `<tr><td class="strong">${label}</td><td class="r num">${a}</td><td class="r num">${b}</td><td class="r num strong ${cls}">${t}</td></tr>`;
-    const payoff = (m) => (m == null ? '-' : idxShort(C.startIdx + m));
+    const payoff = (x) => (x.months == null ? whyNot(x.reason) : idxShort(C.startIdx + x.months));
+    const tot = (m, r) => (m == null ? whyNot(r) : `${idxLong(C.startIdx + m)} (${duration(m)})`);
     let rows =
       row('เดือนที่คำนวณ', idxLong(C.startIdx), '', '') +
       row('เงินต้นคงเหลือตั้งต้น', baht(h.principal), baht(d.principal), baht(h.principal + d.principal)) +
@@ -1422,26 +1464,29 @@ function readLog_(n) {
       row('ยอดชำระประจำงวด (ต้น / ดอก)', `${fmt(h.payPrincipal, 0)} / ${fmt(h.payInterest, 0)}`, `${fmt(d.payPrincipal, 0)} / ${fmt(d.payInterest, 0)}`, baht(C.totalPay) + ' /เดือน', 'c-good') +
       row('เงินต้นคงเหลือหลังหักจ่าย', baht(h.remP), baht(d.remP), baht(C.totalRemP), 'c-gold') +
       row('ดอกเบี้ยคงเหลือหลังหักจ่าย', baht(h.remI), baht(d.remI), baht(C.totalRemI)) +
-      row('คาดหมดหนี้ (แผนปกติ)', payoff(h.normal.months), payoff(d.normal.months), C.normalMonths == null ? '-' : `${idxLong(C.startIdx + C.normalMonths)} (${duration(C.normalMonths)})`) +
+      row('คาดหมดหนี้ (แผนปกติ)', payoff(h.normal), payoff(d.normal), tot(C.normalMonths, C.normalReason)) +
       row('ดอกเบี้ยรวมที่ต้องจ่าย (แผนปกติ)', h.normal.totalInt == null ? '-' : baht(h.normal.totalInt, 0), d.normal.totalInt == null ? '-' : baht(d.normal.totalInt, 0), C.normalInt == null ? '-' : baht(C.normalInt, 0));
     if (state.restructure.enabled) {
-      rows += row('คาดหมดหนี้ (ประนอมหนี้)', payoff(h.restr.months), payoff(d.restr.months), C.restrMonths == null ? '-' : `${idxLong(C.startIdx + C.restrMonths)} (${duration(C.restrMonths)})`, 'c-good') +
+      rows += row('คาดหมดหนี้ (ประนอมหนี้)', payoff(h.restr), payoff(d.restr), tot(C.restrMonths, C.restrReason), 'c-good') +
         row('ดอกเบี้ยรวม (ประนอมหนี้)', h.restr.totalInt == null ? '-' : baht(h.restr.totalInt, 0), d.restr.totalInt == null ? '-' : baht(d.restr.totalInt, 0), C.restrInt == null ? '-' : baht(C.restrInt, 0), 'c-good');
     }
     $('#reportSummary').innerHTML = rows;
 
     const hist = state.history;
     if (!hist.length) {
-      $('#reportHistory').innerHTML = `<tr><td colspan="6"><div class="empty" style="margin:6px 0">ยังไม่มีประวัติการผ่อน — ไปที่ <b>บันทึกงวด</b> แล้วกด “บันทึกรอบเดือนนี้”</div></td></tr>`;
+      $('#reportHistory').innerHTML = `<tr><td colspan="8"><div class="empty" style="margin:6px 0">ยังไม่มีประวัติการผ่อน — ไปที่ <b>บันทึกงวด</b> แล้วกด “บันทึกรอบเดือนนี้”</div></td></tr>`;
     } else {
       $('#reportHistory').innerHTML = hist.map((x, i) => {
         const tot = x.house.payPrincipal + x.house.payInterest + x.dorm.payPrincipal + x.dorm.payInterest;
-        const rem = (x.house.principal - x.house.payPrincipal) + (x.dorm.principal - x.dorm.payPrincipal);
+        const rp = (a) => Math.max(0, a.principal - a.payPrincipal), ri = (a) => Math.max(0, a.interest - a.payInterest);
+        const two = (a, b, d = 2) => `<span>${fmt(a, d)}</span><span>${fmt(b, d)}</span>`;
         return `<tr><td class="strong">${thDate(x.date)}</td>
-          <td class="r num c-good">${fmt(x.house.payPrincipal, 0)} / ${fmt(x.dorm.payPrincipal, 0)}</td>
-          <td class="r num c-warn">${fmt(x.house.payInterest, 0)} / ${fmt(x.dorm.payInterest, 0)}</td>
+          <td class="r num two">${two(x.house.payPrincipal, x.dorm.payPrincipal, 0)}</td>
+          <td class="r num two">${two(x.house.payInterest, x.dorm.payInterest, 0)}</td>
+          <td class="r num two strong">${two(rp(x.house), rp(x.dorm))}</td>
+          <td class="r num two">${two(ri(x.house), ri(x.dorm))}</td>
           <td class="r num strong">${fmt(tot)}</td>
-          <td class="r num strong">${fmt(rem)}</td>
+          <td class="r num two mute"><span class="strong">${fmt(rp(x.house) + rp(x.dorm))}</span><span class="c-warn">${fmt(ri(x.house) + ri(x.dorm))}</span></td>
           <td class="r report-only-hide no-print"><div class="row-actions">
             <button class="icon-btn" data-action="editHistory" data-idx="${i}" aria-label="แก้ไขงวด ${thDate(x.date)}"><svg class="i i-sm"><use href="#i-pen"/></svg></button>
             <button class="icon-btn del" data-action="deleteHistory" data-idx="${i}" aria-label="ลบงวด ${thDate(x.date)}"><svg class="i i-sm"><use href="#i-trash"/></svg></button>
@@ -1903,7 +1948,7 @@ function readLog_(n) {
     if (!x) return;
     editingIdx = i;
     $('#ed-date').value = x.date;
-    ['house', 'dorm'].forEach((a) => ['principal', 'payPrincipal', 'payInterest'].forEach((k) => { $(`#ed-${a}-${k}`).value = x[a][k]; }));
+    ['house', 'dorm'].forEach((a) => ['principal', 'interest', 'payPrincipal', 'payInterest'].forEach((k) => { $(`#ed-${a}-${k}`).value = x[a][k]; }));
     $('#editTitle').textContent = 'แก้ไขงวด ' + thDate(x.date);
     openModal('editModal');
   }
@@ -1914,7 +1959,7 @@ function readLog_(n) {
     const dup = state.history.findIndex((h, i) => h.date === date && i !== editingIdx);
     if (dup >= 0) { toast({ type: 'warn', title: 'มีงวดของวันที่นี้อยู่แล้ว', lines: ['กรุณาเลือกวันที่อื่น'] }); return; }
     x.date = date;
-    ['house', 'dorm'].forEach((a) => ['principal', 'payPrincipal', 'payInterest'].forEach((k) => { x[a][k] = n($(`#ed-${a}-${k}`).value); }));
+    ['house', 'dorm'].forEach((a) => ['principal', 'interest', 'payPrincipal', 'payInterest'].forEach((k) => { x[a][k] = n($(`#ed-${a}-${k}`).value); }));
     state.history.sort((a, b) => a.date.localeCompare(b.date));
     closeModal($('#editModal .modal'));
     onChange(); flush();
@@ -2029,10 +2074,29 @@ function readLog_(n) {
   window.addEventListener('hashchange', () => setTab(location.hash.slice(1), false));
 
   /* ================= Boot ================= */
+  // นำเข้าข้อมูลเดิมครั้งเดียว (เฉพาะเครื่องที่ยังเป็นข้อมูลตัวอย่าง ไม่ทับข้อมูลที่แก้ไขแล้ว)
+  let importedNow = false;
+  if (ls.get(K.seed) !== SEED_ID) {
+    if (isPristineDemo(state)) {
+      state = normalizeState(SEED);
+      state.meta.updatedAt = Date.now();
+      baseline = clone(state);
+      saveLocal(); saveBaseline();
+      importedNow = true;
+    }
+    ls.set(K.seed, SEED_ID);
+  }
   $('#gasCodeView').textContent = $('#gasCode').textContent.trim();
   applyTheme(theme);
   setTab(location.hash.slice(1) || ls.get(K.tab, 'overview'));
   renderAll();
+  if (importedNow) {
+    const h = state.history;
+    const msg = [`นำเข้าประวัติเดิม ${h.length} งวด (${thDate(h[0].date)} – ${thDate(h[h.length - 1].date)})`, `ยอดตั้งต้นรอบ ${thDate(state.current.date)}: บ้าน ${baht(state.current.house.principal)} · หอ ${baht(state.current.dorm.principal)}`, 'นำเข้าแผนประนอมหนี้ “คุณสู้เราช่วย” (บ้าน 2 ช่วง · หอ 3 ช่วง)'];
+    addLog({ t: Date.now(), device: deviceName, changes: msg, source: 'local', synced: false });
+    if (Sync.url) { Sync.pending.push(...msg); savePending(); }
+    setTimeout(() => toast({ type: 'info', title: 'นำเข้าข้อมูลเดิมเรียบร้อย', lines: msg, timeout: 9000 }), 900);
+  }
   setStatus(Sync.url ? (hasPending() ? 'local' : 'synced') : 'local');
   window.addEventListener('load', () => { if (lastCalc) renderChart(lastCalc); });
 
