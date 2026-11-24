@@ -1,5 +1,5 @@
 /* GH Debt Planner — service worker (offline + update) */
-const VERSION = '2.2.0';
+const VERSION = '2.2.1';
 const CACHE = 'ghb-planner-' + VERSION;
 const CORE = [
   './',

@@ -784,7 +784,10 @@ details.box[open] summary{margin-bottom:14px}
               <div class="total num" id="recTotal">฿0.00</div>
               <div class="muted" style="font-size:12.5px" id="recRemain">-</div>
             </div>
-            <button class="btn btn-gold" data-action="saveRecord"><svg class="i"><use href="#i-save"/></svg>บันทึกรอบเดือนนี้</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-line" data-action="nextPeriod" title="ยกยอดคงเหลือไปเป็นยอดตั้งต้นของเดือนถัดไป"><svg class="i"><use href="#i-calendar"/></svg>เตรียมงวดถัดไป</button>
+              <button class="btn btn-gold" data-action="saveRecord"><svg class="i"><use href="#i-save"/></svg>บันทึกรอบเดือนนี้</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1305,8 +1308,14 @@ function readLog_(n) {
   'use strict';
 
   /* ================= App version & changelog ================= */
-  const APP_VERSION = '2.2.0';
+  const APP_VERSION = '2.2.1';
   const CHANGELOG = [
+    { version: '2.2.1', date: '2026-11-24', notes: [
+      'ลดป๊อปอัพที่ไม่จำเป็น: ไม่แจ้งเตือนทุกครั้งที่บันทึกหรือซิงค์สำเร็จ (ดูรายการที่เปลี่ยนได้ในการ์ด “การอัปเดตล่าสุด” และจุดสถานะการซิงค์)',
+      'ป๊อปอัพจะเด้งเฉพาะเรื่องที่ต้องรู้หรือต้องทำ: ซิงค์ไม่สำเร็จ, ข้อมูลถูกแก้จากอุปกรณ์อื่น, กรอกข้อมูลไม่ถูกต้อง',
+      'ปุ่ม “เตรียมงวดถัดไป” ย้ายมาอยู่ข้างปุ่มบันทึกในแท็บบันทึกงวด',
+      'กดคัดลอกหรือบันทึกแล้ว ปุ่มจะขึ้นเครื่องหมายถูกแทนการเด้งป๊อปอัพ'
+    ]},
     { version: '2.2.0', date: '2026-11-24', notes: [
       'ธีมใหม่ 4 แบบ: อัตโนมัติ · สว่าง · ถนอมสายตา (โทนกระดาษอุ่น ลดแสงสีฟ้า) · มืด พร้อมเอฟเฟกต์เปลี่ยนธีมแบบวงกลม',
       'การ์ดหลักโฉมใหม่: วงแหวนแสดง % ที่ชำระแล้ว ตัวเลขนับขึ้นแบบเคลื่อนไหว และเป้าหมายถัดไปพร้อมเวลาโดยประมาณ',
@@ -2086,7 +2095,6 @@ function readLog_(n) {
     }
     if (!Sync.url) {
       Sync.pending = []; savePending();
-      if (changes.length && !opts.silent) toast({ title: 'บันทึกในเครื่องแล้ว', lines: changes, action: { label: 'เชื่อม Google Sheet', run: openSettings } });
       setStatus('local');
       return;
     }
@@ -2108,7 +2116,6 @@ function readLog_(n) {
       activity.forEach((a) => { if (a.source === 'local' && !a.synced) a.synced = true; });
       ls.set(K.log, JSON.stringify(activity)); renderFeed();
       setStatus('synced');
-      if (changesForToast.length) toast({ title: 'ซิงค์ไป Google Sheet แล้ว', lines: changesForToast });
     } catch (err) {
       setStatus(navigator.onLine ? 'error' : 'offline');
       if (!Sync.errorShown) {
@@ -2123,7 +2130,7 @@ function readLog_(n) {
 
   // ดึงข้อมูลล่าสุดจาก Google Sheet
   async function pull({ manual = false } = {}) {
-    if (!Sync.url) { if (manual) toast({ type: 'info', title: 'ยังไม่ได้เชื่อม Google Sheet', lines: ['ข้อมูลถูกเก็บในเครื่องนี้ — เชื่อมต่อเพื่อซิงค์ข้ามอุปกรณ์'], action: { label: 'ตั้งค่าเลย', run: openSettings } }); return; }
+    if (!Sync.url) return;
     if (Sync.busy) return;
     Sync.busy = true;
     setStatus('syncing');
@@ -2139,7 +2146,6 @@ function readLog_(n) {
       if (res.rev === Sync.rev) {
         Sync.lastSync = Date.now(); ls.set(K.lastSync, Sync.lastSync);
         if (hasPending()) { await push(); } else setStatus('synced');
-        if (manual) toast({ title: 'ข้อมูลเป็นปัจจุบันแล้ว', lines: [`ตรงกับ Google Sheet (อัปเดตล่าสุด ${remoteTime ? timeAgo(remoteTime) : '-'})`] });
         return;
       }
       if (hasPending() && state.meta.updatedAt > remoteTime) { await push(manual ? ['ส่งข้อมูลล่าสุดจากเครื่องนี้'] : []); return; }
@@ -2155,7 +2161,7 @@ function readLog_(n) {
       if (changes.length) {
         addLog({ t: Date.now(), device: res.lastDevice || 'Google Sheet', changes, source: 'remote' });
         toast({ type: 'remote', title: `อัปเดตจาก ${res.lastDevice || 'Google Sheet'}`, lines: changes, timeout: 8000 });
-      } else if (manual) toast({ title: 'ข้อมูลเป็นปัจจุบันแล้ว' });
+      }
     } catch (err) {
       Sync.busy = false;
       setStatus(navigator.onLine ? 'error' : 'offline');
@@ -2199,7 +2205,6 @@ function readLog_(n) {
     Sync.rev = 0; ls.set(K.rev, 0);
     setStatus('syncing');
     await pull({ manual: !silent });
-    if (Sync.status === 'synced' && !silent) toast({ title: 'เชื่อมต่อ Google Sheet สำเร็จ', lines: ['ทุกการแก้ไขจะซิงค์อัตโนมัติ'] });
   }
 
   /* ================= App update (version) ================= */
@@ -2215,7 +2220,6 @@ function readLog_(n) {
         pendingVersion = v;
         $('#updateBannerText').innerHTML = `<b>มีเวอร์ชันใหม่ ${esc(v.version)}</b> — ${esc((v.notes || []).slice(0, 2).join(' · ') || 'ปรับปรุงประสิทธิภาพ')}`;
         $('#updateBanner').classList.remove('hidden');
-        if (manual) toast({ type: 'info', title: `มีเวอร์ชันใหม่ ${v.version}`, lines: v.notes || [], action: { label: 'อัปเดตเลย', run: applyUpdate } });
         return true;
       }
     } catch (e) {}
@@ -2239,7 +2243,7 @@ function readLog_(n) {
   /* ================= Install / share to home screen ================= */
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-  window.addEventListener('appinstalled', () => { deferredPrompt = null; toast({ title: 'ติดตั้งแอปเรียบร้อย', lines: ['เปิดใช้งานได้จากหน้าจอโฮมหรือ Dock'] }); });
+  window.addEventListener('appinstalled', () => { deferredPrompt = null; });
   const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const isApple = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   function setPlatform(p) {
@@ -2256,8 +2260,16 @@ function readLog_(n) {
     openModal('installModal');
   }
   const appUrl = () => location.origin + location.pathname;
-  async function copyText(t, okMsg) {
-    try { await navigator.clipboard.writeText(t); toast({ title: okMsg }); }
+  // ยืนยันสั้น ๆ บนปุ่มที่กด แทนป๊อปอัพ
+  function flashButton(btn, label) {
+    if (!btn || !btn.classList || btn._flash) return;
+    const html = btn.innerHTML;
+    btn._flash = true;
+    btn.innerHTML = `<svg class="i i-sm"><use href="#i-check"/></svg>${esc(label)}`;
+    setTimeout(() => { btn.innerHTML = html; btn._flash = false; }, 1600);
+  }
+  async function copyText(t, btn) {
+    try { await navigator.clipboard.writeText(t); flashButton(btn, 'คัดลอกแล้ว'); }
     catch (e) { window.prompt('คัดลอกข้อความนี้', t); }
   }
 
@@ -2269,7 +2281,6 @@ function readLog_(n) {
     a.download = `ghbank_debt_backup_${todayISO()}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast({ title: 'สำรองข้อมูลแล้ว', lines: [a.download] });
   }
   $('#restoreFile').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -2295,7 +2306,6 @@ function readLog_(n) {
   async function exportPDF() {
     closeMenu();
     setTab('report');
-    toast({ type: 'info', title: 'กำลังสร้างไฟล์ PDF…', timeout: 2500 });
     try {
       if (!window.html2pdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
       const prevTheme = document.documentElement.getAttribute('data-theme');
@@ -2308,7 +2318,6 @@ function readLog_(n) {
       }).save();
       document.body.classList.remove('exporting');
       if (prevTheme) document.documentElement.setAttribute('data-theme', prevTheme); else document.documentElement.removeAttribute('data-theme');
-      toast({ title: 'บันทึก PDF เรียบร้อย' });
     } catch (e) {
       document.body.classList.remove('exporting');
       applyTheme(theme);
@@ -2449,7 +2458,6 @@ function readLog_(n) {
   }
   async function exportImage() {
     closeMenu();
-    toast({ type: 'info', title: 'กำลังสร้างภาพสรุป…', timeout: 1600 });
     try {
       imgBlob = await buildReportImage();
       if (imgUrl) URL.revokeObjectURL(imgUrl);
@@ -2497,15 +2505,10 @@ function readLog_(n) {
     state.history.sort((a, b) => a.date.localeCompare(b.date));
     state.meta.updatedAt = Date.now(); saveLocal(); renderComputed();
     await flush({ silent: true });
-    const C = lastCalc;
     const r = btn && btn.getBoundingClientRect ? btn.getBoundingClientRect() : null;
     celebrate(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight / 2);
     haptic(18);
-    toast({
-      title: i >= 0 ? `อัปเดตงวด ${thDate(entry.date)} แล้ว` : `บันทึกงวด ${thDate(entry.date)} แล้ว`,
-      lines: [`ยอดจ่ายรวม ${baht(C.totalPay)}`, `เงินต้นคงเหลือ ${baht(C.totalRemP)}`, Sync.url ? (Sync.status === 'synced' ? 'ซิงค์ไป Google Sheet แล้ว' : 'รอซิงค์ไป Google Sheet') : 'บันทึกในเครื่องแล้ว'],
-      action: { label: 'เตรียมงวดถัดไป', run: nextPeriod }, timeout: 7000
-    });
+    flashButton(btn, i >= 0 ? 'อัปเดตงวดแล้ว' : 'บันทึกแล้ว');
   }
   function nextPeriod() {
     const C = compute(state);
@@ -2538,7 +2541,6 @@ function readLog_(n) {
       if (!imgBlob) return;
       const a = document.createElement('a'); a.href = imgUrl; a.download = imgName();
       document.body.appendChild(a); a.click(); a.remove();
-      toast({ title: 'บันทึกรูปภาพแล้ว', lines: [imgName()] });
     },
     shareImage: async () => {
       if (!imgBlob) return;
@@ -2551,11 +2553,12 @@ function readLog_(n) {
     applyUpdate,
     clearHistory: async () => {
       closeMenu();
-      if (!state.history.length) { toast({ type: 'info', title: 'ยังไม่มีประวัติให้ล้าง' }); return; }
+      if (!state.history.length) return;
       if (!(await confirmDialog('ล้างประวัติทั้งหมด?', `ประวัติการผ่อน ${state.history.length} งวดจะถูกลบ (รวมถึงใน Google Sheet) — แนะนำให้สำรองข้อมูลก่อน`, 'ล้างประวัติ'))) return;
       state.history = []; onChange(); flush();
     },
     saveRecord: (btn) => saveRecord(btn),
+    nextPeriod: () => nextPeriod(),
     addPeriod: (btn) => {
       const acc = btn.dataset.acc;
       const d = new Date();
@@ -2587,15 +2590,14 @@ function readLog_(n) {
       if (!(await confirmDialog('ยกเลิกการเชื่อมต่อ?', 'ข้อมูลในเครื่องและใน Google Sheet จะยังอยู่ครบ เพียงแต่จะไม่ซิงค์กันอีก', 'ยกเลิกการเชื่อมต่อ'))) return;
       Sync.url = ''; ls.del(K.url); Sync.pending = []; savePending(); setStatus('local');
       $('#sheetUrlInput').value = '';
-      toast({ type: 'info', title: 'ยกเลิกการเชื่อมต่อแล้ว' });
     },
-    copyLink: () => {
+    copyLink: (btn) => {
       const u = $('#sheetUrlInput').value.trim() || Sync.url;
       if (!u) { toast({ type: 'warn', title: 'ยังไม่มี URL ให้คัดลอก' }); return; }
-      copyText(appUrl() + '?sheet=' + encodeURIComponent(u), 'คัดลอกลิงก์แล้ว — เปิดบนอุปกรณ์อื่นเพื่อเชื่อมต่อทันที');
+      copyText(appUrl() + '?sheet=' + encodeURIComponent(u), btn);
     },
-    copyCode: () => copyText($('#gasCode').textContent.trim(), 'คัดลอกโค้ด Apps Script แล้ว'),
-    copyAppLink: () => copyText(appUrl(), 'คัดลอกลิงก์แอปแล้ว'),
+    copyCode: (btn) => copyText($('#gasCode').textContent.trim(), btn),
+    copyAppLink: (btn) => copyText(appUrl(), btn),
     nativeShare: async () => { try { await navigator.share({ title: 'วางแผนหนี้ ธอส.', text: 'แอปวางแผนผ่อนหนี้ ธอส.', url: appUrl() }); } catch (e) {} },
     doInstall: async () => {
       if (!deferredPrompt) return;
@@ -2736,7 +2738,6 @@ function readLog_(n) {
     const msg = [`นำเข้าประวัติเดิม ${h.length} งวด (${thDate(h[0].date)} – ${thDate(h[h.length - 1].date)})`, `ยอดตั้งต้นรอบ ${thDate(state.current.date)}: บ้าน ${baht(state.current.house.principal)} · หอ ${baht(state.current.dorm.principal)}`, 'นำเข้าแผนประนอมหนี้ “คุณสู้เราช่วย” (บ้าน 2 ช่วง · หอ 3 ช่วง)'];
     addLog({ t: Date.now(), device: deviceName, changes: msg, source: 'local', synced: false });
     if (Sync.url) { Sync.pending.push(...msg); savePending(); }
-    setTimeout(() => toast({ type: 'info', title: 'นำเข้าข้อมูลเดิมเรียบร้อย', lines: msg, timeout: 9000 }), 900);
   }
   setStatus(Sync.url ? (hasPending() ? 'local' : 'synced') : 'local');
   window.addEventListener('load', () => { if (lastCalc) renderChart(lastCalc); moveInk(); });
@@ -2747,7 +2748,7 @@ function readLog_(n) {
   const linked = params.get('sheet');
   if (linked) {
     history.replaceState(null, '', location.pathname + location.hash);
-    if (validUrl(linked)) connectUrl(linked, { silent: true }).then(() => toast({ title: 'เชื่อมอุปกรณ์นี้กับ Google Sheet แล้ว', lines: ['ข้อมูลล่าสุดถูกดึงมาเรียบร้อย'] }));
+    if (validUrl(linked)) connectUrl(linked, { silent: true });
   } else if (Sync.url) {
     (hasPending() ? push() : pull());
   }
