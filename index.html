@@ -577,8 +577,45 @@ details.box[open] summary{margin-bottom:14px}
   .tabbar .tab-ink{top:6px;height:calc(100% - 12px);border-radius:20px;background:var(--gold-soft);box-shadow:none;border:0}
   body{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
   .toasts{bottom:calc(98px + env(safe-area-inset-bottom))}
-  .save-dock{bottom:calc(92px + env(safe-area-inset-bottom))}
 }
+
+/* Record tab: tidy action bar */
+.sum-info{min-width:0}
+.sum-info .eyebrow{text-transform:none;letter-spacing:0}
+.sum-sub{font-size:12.5px;color:var(--muted)}
+.sum-actions{display:flex;gap:10px;flex:none}
+.lbl-short{display:none}
+@media (max-width:767px){
+  .save-dock{
+    bottom:calc(env(safe-area-inset-bottom) + 90px);padding:10px 10px 10px 18px;border-radius:22px;
+    background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
+    box-shadow:0 14px 40px -14px rgba(0,0,0,.45);border-top:1px solid var(--line);
+  }
+  .summary-bar{flex-wrap:nowrap;gap:10px}
+  .sum-info{flex:1}
+  .sum-info .eyebrow{font-size:11.5px}
+  .summary-bar .total{font-size:20px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sum-sub{display:none}
+  .sum-actions{gap:8px}
+  .sum-actions .btn{height:48px;border-radius:15px;padding:0 16px}
+  .sum-actions .btn-line{width:48px;padding:0}
+  .sum-actions .btn-line .lbl{display:none}
+  .lbl-long{display:none}
+  .lbl-short{display:inline}
+}
+
+/* What's new: update history */
+.wn-hist-title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;margin:20px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.wn-hist-title .i{color:var(--gold)}
+.wn-ver{border:1px solid var(--line);border-radius:16px;background:var(--surface-2);overflow:hidden}
+.wn-ver+.wn-ver{margin-top:8px}
+.wn-ver summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:13.5px}
+.wn-ver summary::-webkit-details-marker{display:none}
+.wn-ver summary .chev{margin-left:auto;color:var(--muted);transition:transform .25s}
+.wn-ver[open] summary .chev{transform:rotate(180deg)}
+.wn-ver .wn-list{padding:0 14px 8px}
+.wn-ver .wn-list li{font-size:13px;padding:8px 0}
+.chip.new{background:var(--good-soft);color:var(--good)}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -629,6 +666,7 @@ details.box[open] summary{margin-bottom:14px}
     <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
     <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4.5-4.5L5 21"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
     <symbol id="i-dock" viewBox="0 0 24 24"><rect x="2" y="15" width="20" height="6" rx="2"/><rect x="5" y="17" width="2.5" height="2.5" rx=".6"/><rect x="10.75" y="17" width="2.5" height="2.5" rx=".6"/><rect x="16.5" y="17" width="2.5" height="2.5" rx=".6"/><path d="M12 3v8M8.5 7.5 12 11l3.5-3.5"/></symbol>
     <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2b5"/><stop offset=".55" stop-color="#dcb878"/><stop offset="1" stop-color="#ad8243"/></linearGradient>
@@ -797,14 +835,14 @@ details.box[open] summary{margin-bottom:14px}
 
         <div class="card save-dock">
           <div class="summary-bar">
-            <div>
-              <div class="eyebrow" style="text-transform:none;letter-spacing:0">ยอดจ่ายรวมรอบนี้</div>
+            <div class="sum-info">
+              <div class="eyebrow">ยอดจ่ายรวมรอบนี้</div>
               <div class="total num" id="recTotal">฿0.00</div>
-              <div class="muted" style="font-size:12.5px" id="recRemain">-</div>
+              <div class="sum-sub" id="recRemain">-</div>
             </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-line" data-action="nextPeriod" title="ยกยอดคงเหลือไปเป็นยอดตั้งต้นของเดือนถัดไป"><svg class="i"><use href="#i-calendar"/></svg>เตรียมงวดถัดไป</button>
-              <button class="btn btn-gold" data-action="saveRecord"><svg class="i"><use href="#i-save"/></svg>บันทึกรอบเดือนนี้</button>
+            <div class="sum-actions">
+              <button class="btn btn-line" data-action="nextPeriod" title="เตรียมงวดถัดไป: ยกยอดคงเหลือไปเป็นยอดตั้งต้นของเดือนถัดไป" aria-label="เตรียมงวดถัดไป"><svg class="i"><use href="#i-calendar"/></svg><span class="lbl">เตรียมงวดถัดไป</span></button>
+              <button class="btn btn-gold" data-action="saveRecord" aria-label="บันทึกรอบเดือนนี้"><svg class="i"><use href="#i-save"/></svg><span class="lbl-long">บันทึกรอบเดือนนี้</span><span class="lbl-short">บันทึก</span></button>
             </div>
           </div>
         </div>
@@ -909,7 +947,7 @@ details.box[open] summary{margin-bottom:14px}
   <button data-action="restore" role="menuitem"><svg class="i"><use href="#i-upload"/></svg>กู้คืนข้อมูลจากไฟล์</button>
   <hr>
   <button data-action="theme" role="menuitem"><svg class="i"><use href="#i-moon"/></svg><span id="themeLabel">ธีม: อัตโนมัติ</span></button>
-  <button data-action="whatsnew" role="menuitem"><svg class="i"><use href="#i-sparkles"/></svg>มีอะไรใหม่</button>
+  <button data-action="whatsnew" role="menuitem"><svg class="i"><use href="#i-sparkles"/></svg>มีอะไรใหม่ / ประวัติการอัปเดต</button>
   <hr>
   <button data-action="clearHistory" role="menuitem" class="danger"><svg class="i"><use href="#i-trash"/></svg>ล้างประวัติการชำระทั้งหมด</button>
 </div>
@@ -1077,7 +1115,7 @@ details.box[open] summary{margin-bottom:14px}
 <!-- ========== Modal: What's new ========== -->
 <div class="overlay" id="whatsNewModal" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle" style="max-width:500px">
-    <div class="modal-head"><svg class="i c-gold"><use href="#i-sparkles"/></svg><h3 id="wnTitle">มีอะไรใหม่</h3><button class="icon-btn" data-action="closeModal" aria-label="ปิด"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="modal-head"><svg class="i c-gold"><use href="#i-sparkles"/></svg><h3 id="wnTitle">มีอะไรใหม่ & ประวัติการอัปเดต</h3><button class="icon-btn" data-action="closeModal" aria-label="ปิด"><svg class="i"><use href="#i-x"/></svg></button></div>
     <div class="modal-body" id="whatsNewBody"></div>
     <div class="modal-foot"><button class="btn btn-gold btn-block" data-action="closeModal">เริ่มใช้งาน</button></div>
   </div>
@@ -1326,8 +1364,13 @@ function readLog_(n) {
   'use strict';
 
   /* ================= App version & changelog ================= */
-  const APP_VERSION = '2.2.2';
+  const APP_VERSION = '2.2.3';
   const CHANGELOG = [
+    { version: '2.2.3', date: '2026-11-25', notes: [
+      'แท็บบันทึกงวดบน iPhone: แถบสรุปยอดและปุ่มบันทึกย่อเหลือแถวเดียว ไม่บังช่องกรอกข้อมูล',
+      'ปุ่มเตรียมงวดถัดไปบนมือถือเป็นไอคอนปฏิทิน อยู่ข้างปุ่มบันทึก',
+      'หน้า “มีอะไรใหม่” แสดงประวัติการอัปเดตทุกเวอร์ชัน กดเปิดดูรายละเอียดแต่ละเวอร์ชันได้'
+    ]},
     { version: '2.2.2', date: '2026-11-24', notes: [
       'iPhone: แถบเมนูด้านล่างลอยขึ้นจากขอบจอเป็นแคปซูล ปุ่มใหญ่ขึ้น กดง่ายด้วยนิ้วโป้ง',
       'iPhone: ปัดซ้าย/ขวาบนหน้าจอเพื่อสลับแท็บได้เลย'
@@ -2254,9 +2297,14 @@ function readLog_(n) {
   }
   function showWhatsNew() {
     closeMenu();
-    const cur = CHANGELOG[0];
+    const seen = ls.get(K.seen);
+    const isNew = (v) => !seen || verCmp(v.version, seen) > 0;
+    const notes = (v) => `<ul class="wn-list">${v.notes.map((t) => `<li><svg class="i i-sm"><use href="#i-check"/></svg><span>${esc(t)}</span></li>`).join('')}</ul>`;
+    const [cur, ...older] = CHANGELOG;
     $('#whatsNewBody').innerHTML = `<div class="wn-hero"><img src="icons/apple-touch-icon.png" alt=""><h4>เวอร์ชัน ${esc(cur.version)}</h4><div class="muted" style="font-size:13px">อัปเดตเมื่อ ${thDate(cur.date)}</div></div>
-      <ul class="wn-list">${cur.notes.map((t) => `<li><svg class="i i-sm"><use href="#i-check"/></svg><span>${esc(t)}</span></li>`).join('')}</ul>`;
+      ${notes(cur)}
+      ${older.length ? `<div class="wn-hist-title"><svg class="i i-sm"><use href="#i-clock"/></svg>ประวัติการอัปเดตทั้งหมด<span class="muted" style="font-weight:400;font-size:12.5px">(${CHANGELOG.length} เวอร์ชัน)</span></div>
+      ${older.map((v) => `<details class="wn-ver"${isNew(v) ? ' open' : ''}><summary><span class="chip gold">v${esc(v.version)}</span><span>${thDate(v.date)}</span>${isNew(v) ? '<span class="chip new">ใหม่</span>' : `<span class="muted">${v.notes.length} รายการ</span>`}<svg class="i i-sm chev"><use href="#i-chevron"/></svg></summary>${notes(v)}</details>`).join('')}` : ''}`;
     openModal('whatsNewModal');
     ls.set(K.seen, APP_VERSION);
   }
@@ -2655,7 +2703,7 @@ function readLog_(n) {
     ...THEMES.map((t) => ({ g: 'ธีม', icon: THEME_ICON[t].slice(2), label: 'ธีม: ' + THEME_TH[t] + (t === theme ? ' ✓' : ''), kw: 'theme ' + t + ' สี โหมด', run: () => setThemeTo(t) })),
     { g: 'อื่น ๆ', icon: 'sheet', label: 'ตั้งค่า Google Sheet', kw: 'google sheet settings sync', run: openSettings },
     { g: 'อื่น ๆ', icon: 'addhome', label: 'เพิ่มลงหน้าจอโฮม / Dock', kw: 'install share iphone mac', run: openInstall },
-    { g: 'อื่น ๆ', icon: 'sparkles', label: 'มีอะไรใหม่', kw: 'whats new changelog update', run: showWhatsNew }
+    { g: 'อื่น ๆ', icon: 'sparkles', label: 'มีอะไรใหม่ / ประวัติการอัปเดต', kw: 'whats new changelog update history version', run: showWhatsNew }
   ];
   let palItems = [], palSel = 0;
   function renderPalette() {
