@@ -604,6 +604,18 @@ details.box[open] summary{margin-bottom:14px}
   .lbl-short{display:inline}
 }
 
+/* Thai date picker & due amounts */
+.th-date{display:grid;grid-template-columns:.8fr 1.7fr 1fr;gap:8px}
+.th-date .select{padding-right:28px;background-position:right 10px center}
+.th-date.pulse .select{animation:datePulse 1.2s ease}
+@keyframes datePulse{0%{box-shadow:0 0 0 0 var(--gold-soft);border-color:var(--gold-2)}40%{box-shadow:0 0 0 6px var(--gold-soft);border-color:var(--gold-2)}100%{box-shadow:0 0 0 0 transparent}}
+.rec-status{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.rec-status.saved{color:var(--good)}
+.rec-status .i{width:15px;height:15px}
+.acc-name .due{font-weight:500;font-size:13px;color:var(--gold);white-space:nowrap}
+.acc-name .due.none{color:var(--muted)}
+@media (max-width:767px){ .rec-head .field{grid-column:1/-1} }
+
 /* What's new: update history */
 .wn-hist-title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;margin:20px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
 .wn-hist-title .i{color:var(--gold)}
@@ -796,11 +808,16 @@ details.box[open] summary{margin-bottom:14px}
       </div>
       <div class="stack">
         <div class="card">
-          <div class="form-grid">
-            <label class="field">
-              <span>เดือนที่ต้องการคำนวณ</span>
-              <input type="date" class="input" data-bind="current.date" data-type="date">
-            </label>
+          <div class="form-grid rec-head">
+            <div class="field">
+              <span>งวดเดือนที่ต้องการคำนวณ</span>
+              <div class="th-date" id="thDate">
+                <select class="select num" id="dDay" aria-label="วันที่"></select>
+                <select class="select" id="dMonth" aria-label="เดือน"></select>
+                <select class="select num" id="dYear" aria-label="ปี พ.ศ."></select>
+              </div>
+              <div class="rec-status" id="recStatus"></div>
+            </div>
             <div class="field">
               <span>รอบที่บันทึกแล้ว</span>
               <div class="input" style="display:flex;align-items:center;gap:8px;background:var(--surface-3)"><svg class="i i-sm c-gold"><use href="#i-calendar"/></svg><span id="historyCount" class="num">0 งวด</span></div>
@@ -810,7 +827,7 @@ details.box[open] summary{margin-bottom:14px}
 
         <div class="grid g-2">
           <div class="card acc-card house">
-            <div class="acc-head"><div class="acc-ico house"><svg class="i"><use href="#i-home"/></svg></div><div><div class="acc-name">บัญชีบ้าน</div><div class="acc-sub">เลขที่ 4901</div></div></div>
+            <div class="acc-head"><div class="acc-ico house"><svg class="i"><use href="#i-home"/></svg></div><div><div class="acc-name">บัญชีบ้าน <span class="due" id="dueHouse"></span></div><div class="acc-sub">เลขที่ 4901</div></div></div>
             <div class="form-grid">
               <label class="field full"><span>เงินต้นคงเหลือตั้งต้น</span><div class="input-wrap"><input type="number" inputmode="decimal" class="input num" data-bind="current.house.principal"><span class="unit">บาท</span></div></label>
               <label class="field"><span>ดอกเบี้ยค้างตั้งต้น</span><div class="input-wrap"><input type="number" inputmode="decimal" class="input num" data-bind="current.house.interest"><span class="unit">บาท</span></div></label>
@@ -821,7 +838,7 @@ details.box[open] summary{margin-bottom:14px}
             </div>
           </div>
           <div class="card acc-card dorm">
-            <div class="acc-head"><div class="acc-ico dorm"><svg class="i"><use href="#i-building"/></svg></div><div><div class="acc-name">บัญชีหอ</div><div class="acc-sub">เลขที่ 6367</div></div></div>
+            <div class="acc-head"><div class="acc-ico dorm"><svg class="i"><use href="#i-building"/></svg></div><div><div class="acc-name">บัญชีหอ <span class="due" id="dueDorm"></span></div><div class="acc-sub">เลขที่ 6367</div></div></div>
             <div class="form-grid">
               <label class="field full"><span>เงินต้นคงเหลือตั้งต้น</span><div class="input-wrap"><input type="number" inputmode="decimal" class="input num" data-bind="current.dorm.principal"><span class="unit">บาท</span></div></label>
               <label class="field"><span>ดอกเบี้ยค้างตั้งต้น</span><div class="input-wrap"><input type="number" inputmode="decimal" class="input num" data-bind="current.dorm.interest"><span class="unit">บาท</span></div></label>
@@ -841,7 +858,6 @@ details.box[open] summary{margin-bottom:14px}
               <div class="sum-sub" id="recRemain">-</div>
             </div>
             <div class="sum-actions">
-              <button class="btn btn-line" data-action="nextPeriod" title="เตรียมงวดถัดไป: ยกยอดคงเหลือไปเป็นยอดตั้งต้นของเดือนถัดไป" aria-label="เตรียมงวดถัดไป"><svg class="i"><use href="#i-calendar"/></svg><span class="lbl">เตรียมงวดถัดไป</span></button>
               <button class="btn btn-gold" data-action="saveRecord" aria-label="บันทึกรอบเดือนนี้"><svg class="i"><use href="#i-save"/></svg><span class="lbl-long">บันทึกรอบเดือนนี้</span><span class="lbl-short">บันทึก</span></button>
             </div>
           </div>
@@ -1364,8 +1380,14 @@ function readLog_(n) {
   'use strict';
 
   /* ================= App version & changelog ================= */
-  const APP_VERSION = '2.2.3';
+  const APP_VERSION = '2.3.0';
   const CHANGELOG = [
+    { version: '2.3.0', date: '2026-11-25', notes: [
+      'บันทึกงวด: แสดงยอดที่ต้องจ่ายของเดือนนั้นในวงเล็บข้างชื่อบัญชีบ้านและบัญชีหอ',
+      'เลือกงวดเดือนแบบภาษาไทย: วัน / ชื่อเดือนภาษาไทย / ปี พ.ศ.',
+      'กดบันทึกแล้วไปงวดเดือนถัดไปอัตโนมัติ พร้อมยกยอดคงเหลือเป็นยอดตั้งต้น (เอาปุ่มเตรียมงวดถัดไปออก)',
+      'เลือกเดือนที่เคยบันทึกไว้ ระบบจะดึงข้อมูลงวดนั้นมาให้แก้ไข และบันทึกได้เดือนละ 1 งวด'
+    ]},
     { version: '2.2.3', date: '2026-11-25', notes: [
       'แท็บบันทึกงวดบน iPhone: แถบสรุปยอดและปุ่มบันทึกย่อเหลือแถวเดียว ไม่บังช่องกรอกข้อมูล',
       'ปุ่มเตรียมงวดถัดไปบนมือถือเป็นไอคอนปฏิทิน อยู่ข้างปุ่มบันทึก',
@@ -1683,8 +1705,59 @@ function readLog_(n) {
     return res;
   }
 
+  /* ================= Thai date picker ================= */
+  const pad2 = (x) => String(x).padStart(2, '0');
+  const daysIn = (y, m) => new Date(y, m, 0).getDate();
+  const ymOf = (iso) => String(iso || '').slice(0, 7);
+  function renderDatePicker() {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(state.current.date || todayISO()) || [];
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const years = state.history.map((h) => +h.date.slice(0, 4)).concat([y, new Date().getFullYear()]);
+    const y0 = Math.min(...years) - 2, y1 = Math.max(...years) + 6;
+    $('#dDay').innerHTML = Array.from({ length: daysIn(y, mo) }, (_, i) => `<option value="${i + 1}"${i + 1 === d ? ' selected' : ''}>${i + 1}</option>`).join('');
+    $('#dMonth').innerHTML = TH_ML.map((name, i) => `<option value="${i + 1}"${i + 1 === mo ? ' selected' : ''}>${name}</option>`).join('');
+    $('#dYear').innerHTML = Array.from({ length: y1 - y0 + 1 }, (_, i) => y0 + i).map((yy) => `<option value="${yy}"${yy === y ? ' selected' : ''}>${yy + 543}</option>`).join('');
+  }
+  // เลือกเดือนที่บันทึกไว้แล้ว → ดึงข้อมูลงวดนั้นมาแก้ไข
+  let draft = null; // ค่าที่กำลังกรอกของงวดที่ยังไม่บันทึก (เก็บไว้ตอนไปดูงวดเก่า)
+  function goToDate(iso) {
+    if (!state.history.some((h) => ymOf(h.date) === ymOf(state.current.date))) draft = clone(state.current);
+    const rec = state.history.find((h) => ymOf(h.date) === ymOf(iso));
+    if (rec) state.current = clone({ date: rec.date, house: rec.house, dorm: rec.dorm });
+    else { if (draft) state.current = clone(draft); state.current.date = iso; }
+    renderInputs(); onChange();
+  }
+  ['#dDay', '#dMonth', '#dYear'].forEach((id) => $(id).addEventListener('change', () => {
+    const y = +$('#dYear').value, mo = +$('#dMonth').value, d = Math.min(+$('#dDay').value, daysIn(y, mo));
+    goToDate(`${y}-${pad2(mo)}-${pad2(d)}`);
+  }));
+  // ยอดที่ต้องจ่ายของเดือนนั้น: ค่างวดประนอมของช่วงนั้น หรือยอดจ่ายของงวดก่อนหน้า
+  function dueFor(k) {
+    const idx = isoToIdx(state.current.date);
+    if (state.restructure.enabled) {
+      const ps = state.restructure[k].periods.map((p) => { const y = p.startYear > 2400 ? p.startYear - 543 : p.startYear; const st = y * 12 + p.startMonth - 1; return { s: st, e: st + p.years * 12 + p.months, pay: n(p.payment) }; });
+      const p = ps.find((x) => idx >= x.s && idx < x.e);
+      if (p) return p.pay;
+    }
+    const prev = state.history.filter((h) => ymOf(h.date) < ymOf(state.current.date)).reverse().find((h) => h[k].payPrincipal + h[k].payInterest > 0);
+    return prev ? prev[k].payPrincipal + prev[k].payInterest : null;
+  }
+  function renderRecordMeta() {
+    const lbl = idxShort(isoToIdx(state.current.date));
+    [['house', '#dueHouse'], ['dorm', '#dueDorm']].forEach(([k, id]) => {
+      const amt = dueFor(k), el = $(id);
+      el.textContent = amt != null ? `(งวด ${lbl} ต้องจ่าย ${baht(amt, 0)})` : `(งวด ${lbl} ยังไม่ระบุค่างวด)`;
+      el.classList.toggle('none', amt == null);
+    });
+    const saved = state.history.some((h) => ymOf(h.date) === ymOf(state.current.date));
+    const st = $('#recStatus');
+    st.classList.toggle('saved', saved);
+    st.innerHTML = saved ? `<svg class="i"><use href="#i-check"/></svg>บันทึกงวดนี้แล้ว — แก้ไขแล้วกดบันทึกเพื่ออัปเดต` : 'งวดนี้ยังไม่ได้บันทึก — กดบันทึกแล้วจะไปเดือนถัดไปให้อัตโนมัติ';
+  }
+
   /* ================= Rendering ================= */
   function renderInputs() {
+    renderDatePicker();
     renderPeriods();
     $$('[data-bind]').forEach((el) => {
       const v = getPath(state, el.dataset.bind);
@@ -1849,6 +1922,7 @@ function readLog_(n) {
     // Record summary
     $('#recTotal').textContent = baht(C.totalPay);
     $('#recRemain').textContent = `เงินต้นคงเหลือหลังจ่าย ${baht(C.totalRemP)}`;
+    renderRecordMeta();
     $('#historyCount').textContent = state.history.length ? `${state.history.length} งวด (ล่าสุด ${thDate(state.history[state.history.length - 1].date)})` : 'ยังไม่มี';
 
     renderReport(C);
@@ -2557,8 +2631,8 @@ function readLog_(n) {
     const x = state.history[editingIdx];
     if (!x) return closeModal($('#editModal .modal'));
     const date = $('#ed-date').value || x.date;
-    const dup = state.history.findIndex((h, i) => h.date === date && i !== editingIdx);
-    if (dup >= 0) { toast({ type: 'warn', title: 'มีงวดของวันที่นี้อยู่แล้ว', lines: ['กรุณาเลือกวันที่อื่น'] }); return; }
+    const dup = state.history.findIndex((h, i) => ymOf(h.date) === ymOf(date) && i !== editingIdx);
+    if (dup >= 0) { toast({ type: 'warn', title: 'มีงวดของเดือนนี้อยู่แล้ว', lines: ['กรุณาเลือกเดือนอื่น หรือแก้ไขงวดเดิม'] }); return; }
     x.date = date;
     ['house', 'dorm'].forEach((a) => ['principal', 'interest', 'payPrincipal', 'payInterest'].forEach((k) => { x[a][k] = n($(`#ed-${a}-${k}`).value); }));
     state.history.sort((a, b) => a.date.localeCompare(b.date));
@@ -2569,7 +2643,7 @@ function readLog_(n) {
   async function saveRecord(btn) {
     if (!state.current.date) { toast({ type: 'warn', title: 'กรุณาเลือกเดือนที่ต้องการคำนวณ' }); return; }
     const entry = clone({ date: state.current.date, house: state.current.house, dorm: state.current.dorm });
-    const i = state.history.findIndex((h) => h.date === entry.date);
+    const i = state.history.findIndex((h) => ymOf(h.date) === ymOf(entry.date));
     if (i >= 0) state.history[i] = entry; else state.history.push(entry);
     state.history.sort((a, b) => a.date.localeCompare(b.date));
     state.meta.updatedAt = Date.now(); saveLocal(); renderComputed();
@@ -2577,16 +2651,25 @@ function readLog_(n) {
     const r = btn && btn.getBoundingClientRect ? btn.getBoundingClientRect() : null;
     celebrate(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight / 2);
     haptic(18);
-    flashButton(btn, i >= 0 ? 'อัปเดตงวดแล้ว' : 'บันทึกแล้ว');
+    flashButton(btn, i >= 0 ? 'อัปเดตแล้ว' : 'บันทึกแล้ว');
+    advanceMonth();
   }
-  function nextPeriod() {
+  // ไปงวดเดือนถัดไปอัตโนมัติ: ยกยอดคงเหลือเป็นยอดตั้งต้น (ถ้าเดือนถัดไปบันทึกไว้แล้ว จะดึงข้อมูลนั้นมาแสดง)
+  function advanceMonth() {
     const C = compute(state);
-    const d = new Date(state.current.date + 'T00:00:00');
-    d.setMonth(d.getMonth() + 1);
-    state.current.date = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    ['house', 'dorm'].forEach((k) => { state.current[k].principal = +C.acc[k].remP.toFixed(2); state.current[k].interest = +C.acc[k].remI.toFixed(2); });
+    const [y, mo, d] = state.current.date.split('-').map(Number);
+    const ny = mo === 12 ? y + 1 : y, nm = mo === 12 ? 1 : mo + 1;
+    const iso = `${ny}-${pad2(nm)}-${pad2(Math.min(d, daysIn(ny, nm)))}`;
+    const rec = state.history.find((h) => ymOf(h.date) === ymOf(iso));
+    if (rec) state.current = clone({ date: rec.date, house: rec.house, dorm: rec.dorm });
+    else {
+      state.current.date = iso;
+      ['house', 'dorm'].forEach((k) => { state.current[k].principal = +C.acc[k].remP.toFixed(2); state.current[k].interest = +C.acc[k].remI.toFixed(2); });
+    }
+    draft = null;
     renderInputs(); onChange();
-    setTab('record');
+    const box = $('#thDate');
+    box.classList.remove('pulse'); void box.offsetWidth; box.classList.add('pulse');
   }
 
   /* ================= Actions (event delegation) ================= */
@@ -2627,7 +2710,6 @@ function readLog_(n) {
       state.history = []; onChange(); flush();
     },
     saveRecord: (btn) => saveRecord(btn),
-    nextPeriod: () => nextPeriod(),
     addPeriod: (btn) => {
       const acc = btn.dataset.acc;
       const d = new Date();
@@ -2694,7 +2776,6 @@ function readLog_(n) {
     { g: 'ไปที่', icon: 'layers', label: 'ประนอมหนี้', k: '3', kw: 'restructure คุณสู้เราช่วย', run: () => setTab('restructure') },
     { g: 'ไปที่', icon: 'file', label: 'รายงาน', k: '4', kw: 'report history ประวัติ', run: () => setTab('report') },
     { g: 'คำสั่ง', icon: 'save', label: 'บันทึกรอบเดือนนี้', k: MOD + 'S', kw: 'save', run: () => saveRecord() },
-    { g: 'คำสั่ง', icon: 'calendar', label: 'เตรียมงวดถัดไป', kw: 'next month', run: nextPeriod },
     { g: 'คำสั่ง', icon: 'refresh', label: 'รีเฟรชข้อมูล', k: 'R', kw: 'refresh sync ซิงค์', run: () => actions.refresh() },
     { g: 'คำสั่ง', icon: 'image', label: 'ส่งออกภาพสรุป (รูปภาพ)', kw: 'image png picture share รูป ภาพ export', run: exportImage },
     { g: 'คำสั่ง', icon: 'download', label: 'บันทึกรายงาน PDF', kw: 'pdf export print', run: exportPDF },
